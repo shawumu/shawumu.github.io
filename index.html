@@ -164,6 +164,90 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-20220108_matplotlib_learn" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2022/01/08/20220108_matplotlib_learn/">matplotlib学习：加载地势数据</a>
+    </h1>
+  
+
+        
+        <a href="/2022/01/08/20220108_matplotlib_learn/" class="archive-article-date">
+  	<time datetime="2022-01-08T09:10:03.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2022-01-08</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>偶尔编程的时候接触到matplotlib，做为python的一个可视化库，在科学研究中使用比较多。今天使用matplotlib加载一下地势数据</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><h3 id="1-准备数据"><a href="#1-准备数据" class="headerlink" title="1. 准备数据"></a>1. 准备数据</h3><p>点击链接进入<a target="_blank" rel="noopener" href="https://topex.ucsd.edu/marine_topo/mar_topo.html">topex.ucsd</a>,点击<strong>[Get ASCII XYZ topography]</strong>获取地势数据<br>输入想要获取的数据范围，点击[get data]获取数据，将其保存为csv数据<br>我选取的范围是秦岭山的一部分，起伏比较明显，最终保存的数据格式如下：<br><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">X,Y,Height</span><br><span class="line">108.7083,34.0418,433.00</span><br><span class="line">108.7250,34.0418,431.00</span><br><span class="line">108.7417,34.0418,427.00</span><br><span class="line">108.7583,34.0418,423.00</span><br><span class="line">108.7750,34.0418,423.00</span><br><span class="line">108.7917,34.0418,435.00</span><br><span class="line">108.8083,34.0418,469.00</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-准备环境"><a href="#2-准备环境" class="headerlink" title="2. 准备环境"></a>2. 准备环境</h3><p>安装python 3.x,通过pip 安装如下包，如果网络慢，可以使用国内代理</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pip install numpy -i https://pypi.tuna.tsinghua.edu.cn/simple</span><br><span class="line">pip install matplotlib -i https://pypi.tuna.tsinghua.edu.cn/simple </span><br></pre></td></tr></table></figure>
+<h2 id="使用matplotlib加载地势数据"><a href="#使用matplotlib加载地势数据" class="headerlink" title="使用matplotlib加载地势数据"></a>使用matplotlib加载地势数据</h2><h3 id="1-读取csv数据"><a href="#1-读取csv数据" class="headerlink" title="1. 读取csv数据"></a>1. 读取csv数据</h3><p>使用DictReader来读取</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> csv</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">readHeight</span>():</span></span><br><span class="line">    heightData = []</span><br><span class="line">    f1 = <span class="built_in">open</span>(<span class="string">&#x27;height.csv&#x27;</span>, mode=<span class="string">&quot;r&quot;</span>, encoding=<span class="string">&quot;utf-8-sig&quot;</span>)</span><br><span class="line">    reader = csv.DictReader(f1)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> reader:</span><br><span class="line">        heightData.append(i)</span><br><span class="line">    f1.close()</span><br><span class="line">    <span class="keyword">return</span> heightData</span><br></pre></td></tr></table></figure>
+<h3 id="2-构建三维面数据矩阵"><a href="#2-构建三维面数据矩阵" class="headerlink" title="2. 构建三维面数据矩阵"></a>2. 构建三维面数据矩阵</h3><p>通过numpy构建20x37数据矩阵，遍历地势数据，将其填入数据矩阵。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getData</span>():</span></span><br><span class="line">    X = np.arange(<span class="number">0</span>, <span class="number">37</span>, <span class="number">1</span>)</span><br><span class="line">    Y = np.arange(<span class="number">0</span>, <span class="number">20</span>, <span class="number">1</span>)</span><br><span class="line">    XG, YG = np.meshgrid(X, Y)</span><br><span class="line">    Z = np.zeros((<span class="number">20</span>, <span class="number">37</span>))</span><br><span class="line">    popData = readHeight()</span><br><span class="line"></span><br><span class="line">    xIndex = -<span class="number">1</span></span><br><span class="line">    yIndex = <span class="number">0</span></span><br><span class="line">    lastLat = popData[<span class="number">0</span>][<span class="string">&#x27;Y&#x27;</span>]</span><br><span class="line">    <span class="keyword">for</span> lineDict <span class="keyword">in</span> popData:</span><br><span class="line">        lat = lineDict[<span class="string">&#x27;Y&#x27;</span>]</span><br><span class="line">        lon = lineDict[<span class="string">&#x27;X&#x27;</span>]</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(lat == lastLat):</span><br><span class="line">            xIndex += <span class="number">1</span>              </span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            yIndex += <span class="number">1</span></span><br><span class="line">            xIndex = <span class="number">0</span></span><br><span class="line">            lastLat = lat</span><br><span class="line">                     </span><br><span class="line">        Z[yIndex][xIndex] = <span class="built_in">float</span>(lineDict[<span class="string">&#x27;Height&#x27;</span>])</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">return</span> XG, YG, Z</span><br></pre></td></tr></table></figure>
+<p>最终返回三个维度的矩阵数据，数值矩阵结构如下：<br><img src="https://m2.im5i.com/2022/01/08/UhFzNM.png" alt="数值矩阵结构"></p>
+<h3 id="3-加载pylot三维面图表"><a href="#3-加载pylot三维面图表" class="headerlink" title="3. 加载pylot三维面图表"></a>3. 加载pylot三维面图表</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pylab <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">makePlot</span>():</span></span><br><span class="line">    fig = plt.figure()</span><br><span class="line">    ax = fig.add_subplot(projection=<span class="string">&#x27;3d&#x27;</span>)</span><br><span class="line">    XG, YG, Z = getData()</span><br><span class="line">    ax.plot_surface(XG, YG, Z, rstride=<span class="number">1</span>, cstride=<span class="number">1</span>, cmap=<span class="string">&#x27;hot&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    show()</span><br></pre></td></tr></table></figure>
+<p>效果如下：<br><img src="https://m2.im5i.com/2022/01/08/UhF7i3.png" alt="地势渲染效果"></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">matplotlib</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2022/01/08/20220108_matplotlib_learn/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-20211214_load_earthquake" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -440,7 +524,7 @@
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2021 shawumu
+    		&copy; 2022 shawumu
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
@@ -540,6 +624,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">earthquake</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">matplotlib</a>
               </li>
             
             <div class="clearfix"></div>
